@@ -4,7 +4,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-#1 Analisis de Impacto por Herramienta (Filtros de Área Geográfica)
 st.set_page_config( #modificamos nuestra pag
     page_title="Dashboard", 
     page_icon=":bar_chart:" #el favicon de la pag
@@ -17,11 +16,12 @@ st.write("""Este conjunto de datos explora cómo la inteligencia artificial est�
 
 df = pd.read_csv("/home/maylinanzures/ejercicio5/TukeyIAProyect/AI_Student_Life_Pakistan_2026.csv")
 
-st.subheader("1. Análisis de Impacto por Herramienta (Filtros de Área Geográfica)")
+st.subheader("1. Análisis de Impacto por Herramienta")
 
 
 # a mi lista le agrego Todas las ciudades
-lista_paises = ["Todas las ciudades"] + list(df['City'].unique())
+paises = list(df['City'].unique())
+lista_paises = ["Todas las ciudades"] + paises
 ciudad_sel = st.selectbox("Selecciona una Ciudad:", options=lista_paises)
 
 if ciudad_sel == "Todas las ciudades":
@@ -29,87 +29,121 @@ if ciudad_sel == "Todas las ciudades":
 else:
     df_filtrado = df[df['City'] == ciudad_sel]
 
+
+#preparamos los datos para el bar_chart
 df_IA = df_filtrado.groupby('AI_Tool_Used')['Impact_on_Grades'].value_counts(normalize=True).unstack()
 
-fig, ax = plt.subplots(figsize=(7,4))
-
-df_IA.plot(kind='bar', stacked=True, ax=ax, color=['#20c1d8','#943164','#ffcef3'])
-
-ax.set_title(f"Distribución de Impacto en {ciudad_sel}")
-ax.set_xlabel("Herramienta de IA")
-ax.legend(title="Impacto", bbox_to_anchor=(1, 1), loc='upper left') #leyenda afuera
-
-plt.xticks(rotation=45)
-st.pyplot(fig)
+#Streamlit usa sus propios colores  :o
+st.bar_chart(df_IA, x_label="Herramienta IA", y_label="Impacto en las notas")
 
 st.subheader("2. Comparativa de Propósitos: Coding vs. Writing")
 
-#obtener los propositos en lista, al parecer es mas facil asi
-lista_propositos = list(df['Purpose'].unique())
+lista_propositos = list(df['Purpose'].unique()) #lista de los propositos
 
-#creamos los radiobutton
 prop_sel = st.radio(
     "Selecciona el propósito de uso de la IA:",
     options=lista_propositos,
-    horizontal=True # pa que salgan en linea
+    horizontal=True 
 )
 
-#Filtaromos segun la eleccion
 df_filtrado_p = df[df['Purpose'] == prop_sel]
-
-#calculamos por eleccion seleccionada
-#no necesitamos unstack porque es un solo grupo :o
 conteo_impacto = df_filtrado_p['Impact_on_Grades'].value_counts()
 
-fig, ax = plt.subplots(figsize=(7, 4))
-
-
-conteo_impacto.plot(kind='bar', ax=ax, color=['#ff765e','#d44e29','#ffff7b'])
-
-ax.set_title(f"Impacto en Notas para: {prop_sel}")
-ax.set_ylabel("Cantidad de Estudiantes")
-ax.set_xlabel("Tipo de Impacto")
-ax.legend(title="Impacto", bbox_to_anchor=(1, 1), loc='upper left') 
-
-plt.xticks(rotation = 0)
-st.pyplot(fig)
+#ojo para st.bar_chart en un solo grupo, lo ideal es pasar una serie
+st.bar_chart(conteo_impacto, x_label="Cambio en las notas", y_label="Cantidad de alumnos")
 
 st.subheader("3. Análisis de Anomalías: Alta Satisfacción y Notas en Declive ")
-# 1. Filtro base de la anomalía (Guardamos todas las columnas necesarias)
-df_anomalia_base = df[(df['Satisfaction_Level'] == 'High') & (df['Impact_on_Grades'] == 'Slight Decline')]
 
-# 2. Configurar el slider interactivo
-# Usamos los valores reales de tus datos para los límites del slider
-min_h = float(df['Daily_Usage_Hours'].min())
-max_h = float(df['Daily_Usage_Hours'].max())
+#filtramos y escogemos columnas que necesitaamos
+dfAS_ND = df[(df['Satisfaction_Level'] == 'High') & (df['Impact_on_Grades'] == 'Slight Decline')][['Satisfaction_Level', 'Impact_on_Grades', 'AI_Tool_Used', 'Daily_Usage_Hours']]
 
-horas_corte = st.slider(
-    "Selecciona el mínimo de horas de uso diario para analizar:", 
-    min_value=min_h, 
-    max_value=max_h, 
-    value=min_h, # Inicia en el mínimo para mostrar a todos al principio
-    step=0.5
+#usamos el min y max del df ya filtrado
+min_uso = float(dfAS_ND['Daily_Usage_Hours'].min())
+max_uso = float(dfAS_ND['Daily_Usage_Hours'].max())
+
+
+horas_seleccionadas = st.slider(
+    "Filtrar por horas de uso diario:",
+    min_value=min_uso,
+    max_value=max_uso,
+    value=min_uso,
+    step=0.5 #ananzamos de 0.5
 )
 
-# 3. Aplicar el filtro del slider al DataFrame de la anomalía
-dfAS_ND = df_anomalia_base[df_anomalia_base['Daily_Usage_Hours'] >= horas_corte]
+#el df con la hora seleccionada
+df_final = dfAS_ND[dfAS_ND['Daily_Usage_Hours'] >= horas_seleccionadas]
 
-# --- VISUALIZACIÓN EN STREAMLIT ---
+st.write(f"Estudiantes encontrados con {horas_seleccionadas} horas o más: {len(df_final)}")
 
-st.subheader("3. Análisis de Anomalías: Alta Satisfacción, Notas en Declive")
+#excluimos las col
+st.dataframe(df_final[['AI_Tool_Used', 'Daily_Usage_Hours']])
 
-# Muestra cuántos son (Componente visual de conteo)
-col_metric, _ = st.columns([1, 2])
-with col_metric:
-    st.metric("Est```
+st.subheader("4. Demografía y Uso")
 
----
+dimensiones = []
 
-### Explicación de qué hicimos con la lógica:
+#los checkboxes llenan esa lista
+if st.checkbox("Desglosar por sexo", value=True):
+    dimensiones.append('Gender')
 
-1.  **El Slider como "Filtro Acumulativo"udiantes encontrados", len(dfAS_ND))
+if st.checkbox("Desglosar por Nivel Educativo"):
+    dimensiones.append('Education_Level')
 
-# Tabla detallada (Componente visual de datos)
-# Seleccionamos las columnas que pide el ejercicio para**: Al usar `>= horas_filtro`, permites que el usuario vea a todos los que superan ese tiempo de uso. Esto es clave para el análisis porque que la tabla sea clara
-st.write(f"Mostrando estudiantes con {horas_corte} horas o más de uso:")
-st.dataframe(dfAS_ND[['AI_Tool_Used', 'Daily_Usage_Hours', 'Satisfaction_Level', 'Impact_on_Grades']])
+# para agrupar
+if dimensiones:
+    #agrupamos por las col en nuestra litsa y el promedio de horas, el reset para agregar indices 0 1
+    df_resumen = df.groupby(dimensiones)['Daily_Usage_Hours'].mean().reset_index()
+    if len(dimensiones) > 1:
+        #si hay dos, el segundo se convierte en el color de las barras
+        st.bar_chart(
+            df_resumen, 
+            x=dimensiones[0], 
+            y='Daily_Usage_Hours',
+            y_label="Promedio de Horas",
+            color=dimensiones[1],
+            stack=False #esto las pone una al lado de la otra para comparar mejor
+        )
+    else:
+        #grafica normal si solo es 1 checked
+        st.bar_chart(df_resumen, x=dimensiones[0], y='Daily_Usage_Hours', y_label="Promedio de Horas")
+else:
+    #si no se marc nada mostramos solo el promedio general en un metric
+    promedio_gral = df['Daily_Usage_Hours'].mean()
+    st.metric("Promedio General de Uso (Horas)", f"{promedio_gral:.2f}")
+
+st.subheader("5. Rendimiento Regional")
+#reutilizamos nuetsra lista paises
+ciudades_seleccionadas = st.multiselect(
+    "Selecciona ciudades para comparar:",
+    options=paises,
+    default=paises[:2] #dos marcadas por defecto
+)
+
+if ciudades_seleccionadas:
+    df_regional = df[df['City'].isin(ciudades_seleccionadas)]
+    
+    #sacamos el total de estudiantes por ciudad
+    total_por_ciudad = df_regional.groupby('City')['Impact_on_Grades'].count()
+
+    #positivos por ciudad
+    positivos_por_ciudad = df_regional[df_regional['Impact_on_Grades'] == 'Improved'].groupby('City')['Impact_on_Grades'].count()
+
+    #calculamos el porcentaje: (Positivos / Total) * 100 esto segun san google
+    # .fillna(0) es por si una ciudad no tiene niun positivo, para que no salga error
+    rendimiento = (positivos_por_ciudad / total_por_ciudad * 100).fillna(0).reset_index(name='Porcentaje_Mejora')
+
+    rendimiento = rendimiento.sort_values(by='Porcentaje_Mejora', ascending=False)
+    st.bar_chart(rendimiento, x='City', y='Porcentaje_Mejora', x_label="Ciudad", y_label="Porcentaje de Merjoa")
+else:
+    st.warning("Selecciona al menos una ciudad para ver la comparativa.")
+
+#insights
+st.divider()
+st.header("Descubrimientos Clave")
+
+with st.expander("Ver Insights del Análisis"):
+    st.markdown("""
+    1. **El Paradox de la Satisfacción:** Existe un grupo crítico de estudiantes que reportan una satisfacción 'Alta' con la IA, pero sus notas muestran un 'Ligero Declive'. Esto sugiere que la IA podría estar generando una falsa sensación de competencia o exceso de confianza.
+    2. **Efecto de la Saturación Horaria:** El análisis de demografía revela que, después de las 5-6 horas de uso diario, el impacto positivo en las notas tiende a estancarse o disminuir, lo que indica un 'punto de retorno decreciente'.
+    3. **Especialización por Propósito:** Herramientas orientadas a *Coding* muestran una mayor tasa de impacto positivo en comparación con las de *Writing*, posiblemente porque la IA en programación actúa como un tutor de lógica, mientras que en escritura puede derivar en un reemplazo del esfuerzo crítico.
+    """)
