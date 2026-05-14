@@ -13,7 +13,7 @@ st.title("Dashboard How AI is Changing Student Life:bar_chart:")
 st.header(":pushpin: Acerca de este dataset")
 st.write("""Este conjunto de datos explora cómo la inteligencia artificial está transformando la vida estudiantil, centrándose en los hábitos de estudio, el rendimiento académico y la satisfacción general. Ofrece información sobre cómo los estudiantes interactúan con las herramientas de IA en sus rutinas diarias de aprendizaje y cómo estas herramientas influyen en sus resultados. El conjunto de datos destaca patrones de uso reales y revela tanto los beneficios como los posibles inconvenientes de la adopción de la IA en la educación.""")
 
-df = pd.read_csv("/home/maylinanzures/ejercicio5/TukeyIAProyect/AI_Student_Life_Pakistan_2026.csv")
+df = pd.read_csv("AI_Student_Life_Pakistan_2026.csv")
 
 st.subheader("1. Análisis de Impacto por Herramienta")
 
