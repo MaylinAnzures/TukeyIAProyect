@@ -35,6 +35,14 @@ df_IA = df_filtrado.groupby('AI_Tool_Used')['Impact_on_Grades'].value_counts(nor
 
 #Streamlit usa sus propios colores  :o
 st.bar_chart(df_IA, x_label="Herramienta IA", y_label="Impacto en las notas")
+#conclusion grafica 1
+
+st.markdown("""
+            **Podemos concluir que** :blue-background[ChatGPT tienen una mejor tasa de mejora] en las notas que se mantiene alta en todas las ciudades. Al contrario 
+            :blue-background[Grammarly es una herramienta que en la mayoría de ciudades tiene un impacto negativo en las notas], esto nos podría indicar que los estudiantes la están 
+            usando para hacer los trabajos rápidamente o que la IA es mala. 
+            
+            """)
 
 st.subheader("2. Comparativa de Propósitos: Coding vs. Writing")
 
@@ -51,6 +59,14 @@ conteo_impacto = df_filtrado_p['Impact_on_Grades'].value_counts()
 
 #ojo para st.bar_chart en un solo grupo, lo ideal es pasar una serie
 st.bar_chart(conteo_impacto, x_label="Cambio en las notas", y_label="Cantidad de alumnos")
+
+#conclusion grafica 2
+
+st.markdown("""
+            El propósito :blue-background["Coding" suele tener impactos más positivos], por lo que la IA es una excelente 
+            maestra para la lógica de programación. En cambio, en :blue-background["Writing" el impacto es neutro, puede que la IA está afectando 
+            la capacidad de redacción] propia o la originalidad de los estudiantes.
+            """)
 
 st.subheader("3. Análisis de Anomalías: Alta Satisfacción y Notas en Declive ")
 
@@ -77,6 +93,14 @@ st.write(f"Estudiantes encontrados con {horas_seleccionadas} horas o más: {len(
 
 #excluimos las col
 st.dataframe(df_final[['AI_Tool_Used', 'Daily_Usage_Hours']])
+
+st.markdown("""
+            Concluye que hay estudiantes que experimentan una :blue-background[satisfacción imaginaria] pues, la satisfacción de la herramienta es alta, pero sus 
+            calificaciones empeoran, podemos notar que la mayoría de estas personas usan la IA una cantidad considerable de tiempo (3.1 - 3.6 horas).
+            Se podría decir que :blue-background[les encanta usar la IA (Satisfacción alta) porque les ahorra tiempo, pero sus notas están bajando] (Slight Decline). 
+            Podemos notar que el uso excesivo es el culpable directo de que la tecnología deje 
+            de ser una ayuda y no aprendas mucho.
+            """)
 
 st.subheader("4. Demografía y Uso")
 
@@ -111,6 +135,15 @@ else:
     promedio_gral = df['Daily_Usage_Hours'].mean()
     st.metric("Promedio General de Uso (Horas)", f"{promedio_gral:.2f}")
 
+#conclusiones del 4
+
+st.markdown("""
+            Si desglosamos por sexo, :blue-background[notamos que los hombres ocupan más tiempo la IA], por nivel educativo, se :blue-background[ocupa más en college (un equivalente a preparatoria)].
+            Si ocupamos sexo y nivel educativo concluimos que :blue-background[las mujeres ocupan más tiempo la IA en la preparatoria y los hombres en la universidad.]
+            Con esto podemos concluir la carga académica de aquellos niveles para hombres y mujeres, la carga compleja 
+            los podría empuja a buscar asistencia de IA con mayor frecuencia.
+            """)
+
 st.subheader("5. Rendimiento Regional")
 #reutilizamos nuetsra lista paises
 ciudades_seleccionadas = st.multiselect(
@@ -137,13 +170,23 @@ if ciudades_seleccionadas:
 else:
     st.warning("Selecciona al menos una ciudad para ver la comparativa.")
 
+
+st.markdown(f"""
+            Podemos concluir que :blue-background[la mejora definitivamente va relacionada a los factores externos] (calidad de internet, métodos de 
+            enseñanza de los profesores locales o acceso a herramientas Pro) de las regiones, esto
+            marca una brecha en el rendimiento.
+            """)
 #insights
 st.divider()
 st.header("Descubrimientos Clave")
 
 with st.expander("Ver Insights del Análisis"):
     st.markdown("""
-    1. **El Paradox de la Satisfacción:** Existe un grupo crítico de estudiantes que reportan una satisfacción 'Alta' con la IA, pero sus notas muestran un 'Ligero Declive'. Esto sugiere que la IA podría estar generando una falsa sensación de competencia o exceso de confianza.
-    2. **Efecto de la Saturación Horaria:** El análisis de demografía revela que, después de las 5-6 horas de uso diario, el impacto positivo en las notas tiende a estancarse o disminuir, lo que indica un 'punto de retorno decreciente'.
-    3. **Especialización por Propósito:** Herramientas orientadas a *Coding* muestran una mayor tasa de impacto positivo en comparación con las de *Writing*, posiblemente porque la IA en programación actúa como un tutor de lógica, mientras que en escritura puede derivar en un reemplazo del esfuerzo crítico.
-    """)
+                1. Podemos concluir que la **IA es más efectiva para ciencias exactas (programación) que para humanidades (redacción)**. 
+                Esto significa que la IA actual es mejor procesando reglas lógicas que contextos creativos y el tiempo que la ocupamos
+                influye en las notas y que podamos desarrollar una **satisfacción imaginaria**. A parte puede que el uso de herramientas de corrección 
+                gramatical podría estar siendo mal empleado.
+                2. **El nivel educativo dicta la dependencia**. A mayor complejidad académica, mayor es la necesidad de asistencia de IA, pero
+                notamos que a las mujeres se les podría complicar más la preparatoria que la universidad, mientras que a los hombres al revés. 
+                3. Concluimos que **el éxito no depende solo del alumno y su forma de estudio, sino de su entorno**.
+                """)
